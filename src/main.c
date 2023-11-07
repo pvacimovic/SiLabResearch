@@ -118,6 +118,8 @@ void initI2C(void)
 
 #define INIT_REG                    0x14
 #define DATA_REG                    0x08
+#define LOG_FILE_PATH               "log/log.txt"
+
 
 /***************************************************************************//**
  * @brief I2C read numBytes from follower device starting at target address
@@ -198,9 +200,18 @@ uint8_t getTemp(float *temp)
     uint8_t initWord = 0xC1;
     uint8_t temperature[2];
 
+    FILE *logFile = fopen(LOG_FILE_PATH, "a");
+
+    if (logFile == NULL) {
+        return 3;
+    }
+
+
     if(I2C_Write(SENSOR_ADDRESS, INIT_REG, &initWord))
     {
-      return 1;
+        printf(logFile, "I2C write operation failed\n");
+        fclose(logFile); // Close the log file before returning
+        return 1;
     }
 
     // sleep 100ms
@@ -209,10 +220,16 @@ uint8_t getTemp(float *temp)
 //    }
 
     if(I2C_Read(SENSOR_ADDRESS, DATA_REG, temperature, 2))
-      return 2;
+    {
+        printf(logFile, "I2C read operation failed\n");
+        fclose(logFile); 
+        return 2; 
+    }
 
     temp = (temperature[0] << 8 | temperature[1]) * 0.005;
+    fprintf(logFile, "Temperature read successfully: %f\n", *temp);
 
+    fclose(logFile); // Close the log file before returning
     return 0;
 }
 
