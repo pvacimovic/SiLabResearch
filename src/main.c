@@ -113,23 +113,91 @@ void initI2C(void)
 // device address (write A0, read A1)
 // 1010000 (0x50) + 0 (w) or 1 (r)
 #define SENSOR_ADDRESS              0x50
+#define ADDRESS_READ                0xA1
+#define ADDRESS_WRITE               0xA0
 
-
+#define INIT_REG                    0x14
+#define DATA_REG                    0x08
 
 /***************************************************************************//**
  * @brief I2C read numBytes from follower device starting at target address
  ******************************************************************************/
-void I2C_LeaderRead(uint16_t followerAddress, uint8_t targetAddress, uint8_t *rxBuff, uint8_t numBytes){}
+uint8_t I2C_Read(uint16_t followerAddress, uint8_t targetAddress, uint8_t *rxBuff, uint8_t numBytes)
+{
+    // Transfer structure
+    I2C_TransferSeq_TypeDef i2cTransfer;
+    I2C_TransferReturn_TypeDef result;
+
+    uint8_t TxBuffer[1]; //Just a buffer to
+    TxBuffer[0] = targetAddress;
+
+    // Initialize I2C transfer
+    i2cTransfer.addr = followerAddress;
+    i2cTransfer.flags = I2C_FLAG_WRITE_READ; // must write target address before reading
+    i2cTransfer.buf[0].data = TxBuffer; //The buffer to be used by the write part
+    i2cTransfer.buf[0].len = 1; //Length of the write
+    i2cTransfer.buf[1].data = rxBuff; //Buffer to be used by the read part
+    i2cTransfer.buf[1].len = numBytes; //Number of bytes to read
+
+    result = I2C_TransferInit (I2C0, &i2cTransfer);
+
+    // Send data
+    while (result == i2cTransferInProgress)
+    {
+        result = I2C_Transfer (I2C0);
+    }
+
+    // if there is an issue figure it out
+    if (result != i2cTransferDone)
+      return 1;
+
+    return 0;
+}
 
 /***************************************************************************//**
  * @brief I2C write numBytes to follower device starting at target address
  ******************************************************************************/
-void I2C_LeaderWrite(uint16_t followerAddress, uint8_t targetAddress, uint8_t *txBuff, uint8_t numBytes){}
+uint8_t I2C_Write(uint16_t followerAddress, uint8_t targetAddress, uint8_t *txBuff)
+{
+     // Transfer structure
+     I2C_TransferSeq_TypeDef i2cTransfer;
+     I2C_TransferReturn_TypeDef result;
+
+     uint8_t TxBuffer[2];
+     TxBuffer[0] = targetAddress; // target register to write on
+     TxBuffer[1] = *txBuff; // 1 byte to write
+
+     // Initialize I2C transfer
+     i2cTransfer.addr = followerAddress;
+     i2cTransfer.flags = I2C_FLAG_WRITE;
+     i2cTransfer.buf[0].data = TxBuffer;
+     i2cTransfer.buf[0].len = 2;
+     i2cTransfer.buf[1].data = NULL;
+     i2cTransfer.buf[1].len = 0;
+
+     result = I2C_TransferInit (I2C0, &i2cTransfer);
+
+     // Send data
+     while (result == i2cTransferInProgress)
+     {
+         result = I2C_Transfer (I2C0);
+     }
+
+     // if there is an issue figure it out
+     if (result != i2cTransferDone)
+       return 1;
+
+     return 0;
+}
 
 /***************************************************************************//**
  * @brief I2C Read/Increment/Write/Verify
  ******************************************************************************/
-bool testI2C(void){}
+bool testI2C(void)
+{
+
+
+}
 
 /***************************************************************************//**
  * @brief GPIO Interrupt handler
