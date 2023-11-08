@@ -193,7 +193,7 @@ uint8_t I2C_Write(uint16_t followerAddress, uint8_t targetAddress, uint8_t *txBu
 /***************************************************************************//**
  * @brief I2C Read/Increment/Write/Verify
  ******************************************************************************/
-uint8_t getTemp(float *temp)
+uint8_t getTemp(double *temp)
 {
     uint8_t initWord = 0xC1;
     uint8_t temperature[2];
@@ -211,7 +211,7 @@ uint8_t getTemp(float *temp)
     if(I2C_Read(SENSOR_ADDRESS, DATA_REG, temperature, 2))
       return 2;
 
-    temp = (temperature[0] << 8 | temperature[1]) * 0.005;
+    (*temp) = (temperature[0] << 8 | temperature[1]) * 0.005;
 
     return 0;
 }
@@ -226,10 +226,18 @@ void GPIO_EVEN_IRQHandler(void){}
  ******************************************************************************/
 int main(void)
 {
-  float temp;
+  // Chip errata
+  CHIP_Init ();
+
+  // Initialize the I2C
+  initCMU ();
+  initGPIO ();
+  initI2C ();
+
+  double temp;
 
   uint8_t OK = getTemp(&temp);
 
   // use temp
-
+  OK = 1;
 }
