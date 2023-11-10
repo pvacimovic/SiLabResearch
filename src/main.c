@@ -157,7 +157,7 @@ uint8_t I2C_Read(uint16_t followerAddress, uint8_t targetAddress, uint8_t *rxBuf
         result = I2C_Transfer (I2C0);
     }
 
-    // if there is an issue figure it out
+    // if there is an issue figure it out, good luck
     if (result != i2cTransferDone)
       return 1;
 
