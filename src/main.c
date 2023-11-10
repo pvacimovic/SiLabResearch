@@ -72,7 +72,17 @@ volatile bool i2c_startTx;
 /***************************************************************************//**
  * @brief Enable clocks
  ******************************************************************************/
-void initCMU(void){}
+void initCMU(void)
+{
+  // Enable clocks to the I2C and GPIO
+  CMU_ClockEnable (cmuClock_I2C0, true);
+  /*
+   * Note: For EFR32xG21 radio devices, library function calls to
+   * CMU_ClockEnable() have no effect as oscillators are automatically turned
+   * on/off based on demand from the peripherals; CMU_ClockEnable() is a dummy
+   * function for EFR32xG21 for library consistency/compatibility.
+   */
+}
 
 /***************************************************************************//**
  * @brief GPIO initialization
@@ -240,4 +250,5 @@ int main(void)
 
   // use temp
   OK = 1;
+  temp = 2;
 }
